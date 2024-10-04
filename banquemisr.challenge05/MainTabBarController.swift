@@ -24,9 +24,15 @@ class MainTabBarController: UITabBarController {
     private func createViewController(for viewControllerID: String, title: String, image: String, category: MovieApi) -> UIViewController {
         let moviesVC = storyboard?.instantiateViewController(withIdentifier: viewControllerID) as! MoviesViewController
         moviesVC.moviesCategory = category
-        moviesVC.navigationTitle = title
+        moviesVC.navigationTitle = "\(title) 🎬"
         moviesVC.tabBarItem.title = title
         moviesVC.tabBarItem.image = UIImage(systemName: image)
+
+
+        let backButton = UIBarButtonItem()
+        backButton.tintColor =  UIColor(named: "tabBarItemColor")
+        backButton.title = "Back"
+        navigationItem.backBarButtonItem = backButton
         return moviesVC
     }
 

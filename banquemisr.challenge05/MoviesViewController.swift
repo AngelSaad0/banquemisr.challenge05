@@ -68,7 +68,9 @@ extension MoviesViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let movieDetailVC = storyboard?
             .instantiateViewController(identifier: "MovieDetailsViewController") as? MovieDetailsViewController
-//        movieDetailVC?.movieId = movieList[indexPath.row].id
+        let  movie = movieList[indexPath.row]
+        movieDetailVC?.movieID = movie.id
+        movieDetailVC?.movie = movie
         navigationController?.pushViewController(movieDetailVC!, animated: true)
     }
 
