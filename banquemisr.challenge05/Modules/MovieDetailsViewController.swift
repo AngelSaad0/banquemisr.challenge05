@@ -29,7 +29,7 @@ class MovieDetailsViewController: UIViewController {
     // MARK: - Properties
     var movieID: Int?
     var movie: Movie?
-    var movieImages:Data?
+    var movieImage:Data?
 
     var networkManager: NetworkManagerProtocol?
     var connectivityManager: ConnectivityManagerProtocol?
@@ -65,22 +65,36 @@ class MovieDetailsViewController: UIViewController {
             DispatchQueue.main.async {
                 self?.movie = movie
                 self?.setupUI()
+                self?.coreDataManager?.updateMovie(withId: movieID, updatedMovie: movie)
+                self?.hideLoadingIndicator()
+
             }
         }
     }
     private func loadCoreData() {
+        guard let movieID = movieID ,let movie =  coreDataManager?.getMovie(forMovieWithId: movieID) else {
+            self.view.displayEmptyMessage(DataError.noCoreDataAvailable)
+            return
+        }
+        if movie.0 == nil {
+            self.view.displayEmptyMessage(DataError.noCachedDataFound)
+        } else {
+            self.movie = movie.0
+            self.movieImage = movie.1
+            setupUI()
+        }
 
     }
 
     private func loadData() {
         showLoadingIndicator()
         connectivityManager?.checkInternetConnection {[weak self] state in
-                self?.hideLoadingIndicator()
                 if state {
                     self?.loadDataFromApi()
                 } else {
                     DispatchQueue.main.async {
                         self?.showNoInternetAlert()
+                        self?.hideLoadingIndicator()
                         self?.loadCoreData()
                     }
                 }
@@ -165,12 +179,16 @@ class MovieDetailsViewController: UIViewController {
 
     // MARK: - Image Loading
     private func loadBackdropImage() {
-        guard let backdropPath = movie?.backdropPath else { return }
-
-        networkManager?.loadImage(from: backdropPath) { [weak self] data in
-            guard let data = data else { return }
-            DispatchQueue.main.async {
-                self?.backdropPathImage.image = UIImage(data: data)
+        if let movieImage = movieImage {
+            backdropPathImage.image = UIImage(data: movieImage)
+        } else {
+            guard let movieID = movieID, let backdropPath = movie?.backdropPath else { return }
+            networkManager?.loadImage(from: backdropPath) { [weak self] data in
+                guard let imageData = data else { return }
+                DispatchQueue.main.async {
+                    self?.backdropPathImage.image = UIImage(data: imageData)
+                    self?.coreDataManager?.storeMovieImage(imageData, forMovieWithId: movieID, imageType: .backdrop)
+                }
             }
         }
     }

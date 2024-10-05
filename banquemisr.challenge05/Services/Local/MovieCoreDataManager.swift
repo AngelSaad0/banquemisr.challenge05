@@ -13,7 +13,9 @@ import UIKit
 protocol MovieCoreDataServiceProtocol {
     func storeMovies(movies: [Movie], category: MovieAPIProvider)
     func getMovies(category: MovieAPIProvider) -> ([Movie],[Data?])
+    func getMovie(forMovieWithId id: Int) -> (Movie?,Data?)
     func storeMovieImage(_ image: Data, forMovieWithId id: Int, imageType: MovieImageType)
+    func updateMovie(withId id: Int, updatedMovie: Movie)
 }
 
 // MARK: - CoreDataManager
@@ -51,7 +53,6 @@ class MovieCoreDataManager:MovieCoreDataServiceProtocol {
     }
     private func createEntity(from movie: Movie) -> MovieEntity {
         let movieEntity = MovieEntity(context: managedContext)
-        movieEntity.budget = Int64(movie.budget ?? 0)
         movieEntity.id = Int64(movie.id)
         movieEntity.overview = movie.overview
         movieEntity.releaseDate = movie.releaseDate
@@ -84,32 +85,34 @@ class MovieCoreDataManager:MovieCoreDataServiceProtocol {
             var movies: [Movie] = []
             var images: [Data?] = []
             for movie in moviesObject {
-                movies.append(Movie(
-                    revenue: Int(movie.revenue),
-                    budget: Int(movie.budget),
-                    adult: movie.adult,
-                    backdropPath: "",
-                    id: Int(movie.id),
-                    originalLanguage: movie.originalLanguage ?? "",
-                    overview: movie.overview ?? "",
-                    popularity: movie.popularity ,
-                    posterPath: "",
-                    releaseDate: movie.releaseDate ?? "",
-                    title: movie.title ?? "" ,
-                    voteAverage: movie.voteAverage,
-                    voteCount: Int(movie.voteCount),
-                    genres: movie.genres as? [Genre]  ?? [],
-                    runtime: Int(movie.runtime),
-                    tagline: movie.tagline
-                ))
+                movies.append(createMovieFromEntity(movie))
                 images.append(movie.posterImage)
             }
             return (movies,images)
-
         } catch {
-            print("Error fetching league: \(error)")
+            print("Error fetching movies: \(error)")
             return ([],[])
         }
+    }
+
+    func getMovie(forMovieWithId id: Int) -> (Movie?,Data?) {
+        let fetchRequest: NSFetchRequest<MovieEntity> = MovieEntity.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "id == %d", id)
+
+        do {
+            let moviesObject = try managedContext.fetch(fetchRequest)
+            if let movieObject = moviesObject.first{
+                let movie = createMovieFromEntity(movieObject)
+                return (movie,movieObject.backdropImage)
+            }else {
+                print("no cached movie With Id \(id)")
+                return (nil,nil)
+            }
+        } catch {
+            print("Error fetching movie: \(error)")
+            return (nil,nil)
+        }
+
     }
 
     func storeMovieImage(_ image: Data, forMovieWithId id: Int, imageType: MovieImageType) {
@@ -129,6 +132,46 @@ class MovieCoreDataManager:MovieCoreDataServiceProtocol {
             print("Error fetching movie: \(error)")
         }
         saveContext()
+    }
+    func updateMovie(withId id: Int, updatedMovie: Movie) {
+            let fetchRequest: NSFetchRequest<MovieEntity> = MovieEntity.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "id == %d", id)
+
+            do {
+                let moviesObjects = try managedContext.fetch(fetchRequest)
+                for movieObject in moviesObjects {
+                        movieObject.budget = Int64(updatedMovie.budget ?? 0)
+                        movieObject.revenue = Int64(updatedMovie.revenue ?? 0)
+                        movieObject.runtime = Int64(updatedMovie.runtime ?? 0)
+                        movieObject.tagline = updatedMovie.tagline
+                       movieObject.genres = updatedMovie.genres as? NSObject
+                        saveContext()
+                        print("Updated movie: \(updatedMovie.title)")
+                    }
+            } catch {
+                print("Error updating movie: \(error.localizedDescription)")
+            }
+        }
+
+    private func createMovieFromEntity(_ movie:MovieEntity)-> Movie {
+        return Movie(
+            revenue: Int(movie.revenue),
+            budget: Int(movie.budget),
+            adult: movie.adult,
+            backdropPath: "",
+            id: Int(movie.id),
+            originalLanguage: movie.originalLanguage ?? "",
+            overview: movie.overview ?? "",
+            popularity: movie.popularity ,
+            posterPath: "",
+            releaseDate: movie.releaseDate ?? "",
+            title: movie.title ?? "" ,
+            voteAverage: movie.voteAverage,
+            voteCount: Int(movie.voteCount),
+            genres: movie.genres as? [Genre]  ?? [],
+            runtime: Int(movie.runtime),
+            tagline: movie.tagline
+        )
     }
 
 }

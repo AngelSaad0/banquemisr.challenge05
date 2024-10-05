@@ -85,7 +85,7 @@ class MoviesViewController: UIViewController {
     private func loadData() {
         showLoadingIndicator()
         connectivityManager?.checkInternetConnection {[weak self] state in
-            if !state {
+            if state {
                 self?.loadDataFromApi()
                 
             } else {
@@ -116,9 +116,7 @@ extension MoviesViewController: UITableViewDelegate {
         movieDetailVC?.movie = movie
         navigationController?.pushViewController(movieDetailVC!, animated: true)
     }
-
 }
-
 // MARK: - TableView DataSource
 extension MoviesViewController: UITableViewDataSource {
 
