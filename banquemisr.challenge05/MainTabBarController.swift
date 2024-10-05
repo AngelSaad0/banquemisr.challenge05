@@ -22,12 +22,17 @@ class MainTabBarController: UITabBarController {
     }
 
     private func createViewController(for viewControllerID: String, title: String, image: String, category: MovieApi) -> UIViewController {
+        
         let moviesVC = storyboard?.instantiateViewController(withIdentifier: viewControllerID) as! MoviesViewController
         moviesVC.moviesCategory = category
         moviesVC.navigationTitle = "\(title) 🎬"
+
         moviesVC.tabBarItem.title = title
         moviesVC.tabBarItem.image = UIImage(systemName: image)
 
+        let customFont = UIFont(name: "Wicked Mouse", size: 20) ?? UIFont.systemFont(ofSize: 20)
+        let customAttributes: [NSAttributedString.Key: Any] = [ .font: customFont, .foregroundColor: UIColor.tabBarItem]
+        navigationController?.navigationBar.titleTextAttributes = customAttributes
 
         let backButton = UIBarButtonItem()
         backButton.tintColor =  UIColor(named: "tabBarItemColor")

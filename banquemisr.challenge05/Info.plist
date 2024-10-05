@@ -8,6 +8,12 @@
 		<string>Montserrat-Medium.ttf</string>
 		<string>Montserrat-Regular.ttf</string>
 		<string>Montserrat-SemiBold.ttf</string>
+		<string>Montserrat-Bold.ttf</string>
+		<string>Roboto-Bold.ttf</string>
+		<string>Wicked Mouse Demo.otf</string>
+		<string>BebasNeue-Regular.ttf</string>
+		<string>TrajanPro-Bold.otf</string>
+		<string>TrajanPro-Regular.ttf</string>
 	</array>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
