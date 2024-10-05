@@ -8,13 +8,15 @@
 import Foundation
 
 protocol NetworkManagerProtocol: AnyObject {
-    func fetchData<T: Codable>(from endpoint: MovieApi, responseType: T.Type, completion: @escaping (T?) -> Void)
+    func fetchData<T: Codable>(from endpoint: MovieAPIProvider
+, responseType: T.Type, completion: @escaping (T?) -> Void)
     func loadImage(from imageUrl: String, completion: @escaping (Data?) -> Void)
 
 }
 class NetworkManager: NetworkManagerProtocol {
 
-    func fetchData<T: Codable>(from endpoint: MovieApi, responseType: T.Type, completion: @escaping (T?) -> Void) {
+    func fetchData<T: Codable>(from endpoint: MovieAPIProvider
+, responseType: T.Type, completion: @escaping (T?) -> Void) {
         guard let url = URL(string: endpoint.urlString) else {
             print("error in url")
             completion(nil)

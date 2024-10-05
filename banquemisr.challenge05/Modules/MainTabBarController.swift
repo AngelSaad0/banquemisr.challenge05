@@ -22,7 +22,8 @@ class MainTabBarController: UITabBarController {
         viewControllers = [nowPlayingVC, popularVC, upcomingVC]
     }
 
-    private func createViewController(for viewControllerID: String, image: String, category: MovieApi) -> UIViewController {
+    private func createViewController(for viewControllerID: String, image: String, category: MovieAPIProvider
+) -> UIViewController {
         let title = category.title
         let moviesVC = storyboard?.instantiateViewController(withIdentifier: viewControllerID) as! MoviesViewController
 

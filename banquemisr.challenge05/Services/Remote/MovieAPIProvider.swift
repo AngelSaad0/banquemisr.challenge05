@@ -6,7 +6,8 @@
 //
 
 import Foundation
-enum MovieApi {
+enum MovieAPIProvider
+ {
     private static let baseUrl = "https://api.themoviedb.org/3/movie/"
     private static let apiKey = "30dafbee1b24fdef15b88ce161deecc2"
 
@@ -15,7 +16,7 @@ enum MovieApi {
     case upcoming
     case details(id: Int)
 
-    private var path: String {
+    var path: String {
         switch self {
         case .nowPlaying:
             return "now_playing"
@@ -29,7 +30,7 @@ enum MovieApi {
     }
 
     var urlString: String {
-        return "\(MovieApi.baseUrl)\(self.path)?api_key=\(MovieApi.apiKey)"
+        return "\(MovieAPIProvider.baseUrl)\(self.path)?api_key=\(MovieAPIProvider.apiKey)"
     }
 
     var title: String {

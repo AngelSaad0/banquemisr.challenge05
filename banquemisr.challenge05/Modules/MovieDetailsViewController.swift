@@ -29,14 +29,18 @@ class MovieDetailsViewController: UIViewController {
     // MARK: - Properties
     var movieID: Int?
     var movie: Movie?
+    var movieImages:Data?
+
     var networkManager: NetworkManagerProtocol?
     var connectivityManager: ConnectivityManagerProtocol?
+    var coreDataManager: MovieCoreDataServiceProtocol?
 
 
     // MARK: - Initialization
     required init?(coder: NSCoder) {
         networkManager = NetworkManager()
         connectivityManager = ConnectivityManager()
+        coreDataManager = MovieCoreDataManager.shared
         super.init(coder: coder)
     }
 
@@ -64,6 +68,10 @@ class MovieDetailsViewController: UIViewController {
             }
         }
     }
+    private func loadCoreData() {
+
+    }
+
     private func loadData() {
         showLoadingIndicator()
         connectivityManager?.checkInternetConnection {[weak self] state in
@@ -73,7 +81,7 @@ class MovieDetailsViewController: UIViewController {
                 } else {
                     DispatchQueue.main.async {
                         self?.showNoInternetAlert()
-//                        self?.loadCoreData()
+                        self?.loadCoreData()
                     }
                 }
 
@@ -100,7 +108,7 @@ class MovieDetailsViewController: UIViewController {
         ageRatingLabel.text = movie.adult ? "+18" : "PG"
         voteAverageLabel.text = formattedVoteAverage(movie.voteAverage)
         originalLanguageLabel.text = movie.originalLanguage.capitalized
-        releaseDateLabel.text = movie.releaseDate
+        releaseDateLabel.text = "🗓️ \(movie.releaseDate)"
         durationLabel.text = calculateRuntime(movie.runtime ?? 0)
         budgetLabel.text = formattedAmount(movie.budget ?? 0)
         revenueLabel.text = formattedAmount(movie.revenue ?? 0)
@@ -116,7 +124,7 @@ class MovieDetailsViewController: UIViewController {
     private func calculateRuntime(_ totalMinutes: Int) -> String {
         let hours = totalMinutes / 60
         let minutes = totalMinutes % 60
-        return "\(hours)h \(minutes)m"
+        return "🕔\(hours)h \(minutes)m"
     }
 
     private func calculatePopularity(_ popularityScore: Double) -> (String, String) {

@@ -13,7 +13,7 @@ extension UIViewController {
     private var loadingIndicator: UIActivityIndicatorView {
         let indicator = UIActivityIndicatorView(style: .large)
         indicator.translatesAutoresizingMaskIntoConstraints = false
-        indicator.color = UIColor(red: 115/255, green: 43/255, blue: 50/255, alpha: 1)
+        indicator.color = .tabBarItem
         return indicator
     }
 
@@ -39,16 +39,32 @@ extension UIViewController {
             }
         }
     }
+
     func showNoInternetAlert() {
         let alertTitle = "No Internet"
         let alertMessage = "Please check your internet connection."
-        let alert = UIAlertController(title: alertTitle, message: alertMessage, preferredStyle: .alert)
-        present(alert, animated: true) {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-              alert.dismiss(animated: true)
-            }
 
+        let alert = UIAlertController(title: nil, message: nil, preferredStyle: .alert)
+        let titleAttributes: [NSAttributedString.Key: Any] = [
+            .foregroundColor: UIColor.tabBarItem,
+            .font: UIFont(name: Constants.wickedMouseFont, size: 14) ?? UIFont.systemFont(ofSize: 14)
+        ]
+        let attributedTitle = NSAttributedString(string: alertTitle, attributes: titleAttributes)
+        let messageAttributes: [NSAttributedString.Key: Any] = [
+            .foregroundColor: UIColor.black
+        ]
+        let attributedMessage = NSAttributedString(string: alertMessage, attributes: messageAttributes)
+
+        alert.setValue(attributedTitle, forKey: "attributedTitle")
+        alert.setValue(attributedMessage, forKey: "attributedMessage")
+
+        // Present the alert
+        present(alert, animated: true) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.8) {
+                alert.dismiss(animated: true)
+            }
         }
     }
+
 }
 

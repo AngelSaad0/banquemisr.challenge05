@@ -7,14 +7,14 @@
 
 import UIKit
 extension UIView {
-    @MainActor func displayEmptyMessage(_ message: String ) {
+    @MainActor func displayEmptyMessage<T: LocalizedError> (_ error: T) {
         DispatchQueue.main.async {
             let messageLabel = UILabel()
-            messageLabel.text = message
-            messageLabel.textColor = .black
+            messageLabel.text = error.errorDescription
+            messageLabel.textColor = .tabBarItem
             messageLabel.numberOfLines = 0
             messageLabel.textAlignment = .center
-            messageLabel.font = UIFont(name: "Avenir", size: 18)
+            messageLabel.font = UIFont(name: Constants.montserratBold, size: 20)
             messageLabel.translatesAutoresizingMaskIntoConstraints = false
             self.addSubview(messageLabel)
             NSLayoutConstraint.activate([

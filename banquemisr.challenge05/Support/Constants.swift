@@ -14,6 +14,10 @@ struct Constants {
     static let popularImage = "flame.fill"
     static let upcomingImage = "clock.fill"
     static let wickedMouseFont = "Wicked Mouse"
+    static let bebasNeueFont = "BebasNeue-Regular"
+    static let trajanBoldFont = "TrajanPro-Bold"
+    static let montserratBold = "Montserrat-Bold"
+
 
 }
 
