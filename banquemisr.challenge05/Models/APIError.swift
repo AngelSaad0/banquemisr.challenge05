@@ -13,7 +13,7 @@ enum APIError: LocalizedError {
     case emptyResponse
     case decodingFailure
     case noInternetConnection
-    var errorDescription: String? {
+    var  errorDescription: String? {
         switch self {
         case .responseMalformed:
             return NSLocalizedString("🚫 The server response is malformed.\n Please try again later.", comment: "Malformed Response")

@@ -17,6 +17,8 @@ struct Constants {
     static let bebasNeueFont = "BebasNeue-Regular"
     static let trajanBoldFont = "TrajanPro-Bold"
     static let montserratBold = "Montserrat-Bold"
+    static let PullToRefresh =  "🔄 Swipe down to refresh 🎥"
+
 
 
 }

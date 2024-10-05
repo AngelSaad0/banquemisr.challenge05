@@ -25,6 +25,7 @@ class MovieDetailsViewController: UIViewController {
     @IBOutlet weak var popularityLabel: UILabel!
     @IBOutlet weak var popularityDetailsLabel: UILabel!
     @IBOutlet weak var overviewLabel: UILabel!
+    @IBOutlet var scrollView: UIScrollView!
 
     // MARK: - Properties
     var movieID: Int?
@@ -35,8 +36,7 @@ class MovieDetailsViewController: UIViewController {
     var networkManager: NetworkManagerProtocol?
     var connectivityManager: ConnectivityManagerProtocol?
     var coreDataManager: MovieCoreDataServiceProtocol?
-    let imageIndicator = UIActivityIndicatorView(style: .large)
-
+    private let refreshControl = UIRefreshControl()
 
     // MARK: - Initialization
     required init?(coder: NSCoder) {
@@ -49,31 +49,74 @@ class MovieDetailsViewController: UIViewController {
     // MARK: - View Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        loadData()
         configureUIDesign()
+        setupRefreshControl()
+        loadData()
+    }
+
+    // MARK: - UI Configuration
+    private func configureUIDesign() {
+        ageRatingLabel.layer.cornerRadius = 5
+        ageRatingLabel.layer.borderWidth = 2
+        ageRatingLabel.layer.borderColor = UIColor.lightGray.cgColor
+    }
+
+    // MARK: - Setup Refresh Control
+    private func setupRefreshControl() {
+        scrollView.refreshControl = refreshControl
+        refreshControl.attributedTitle = NSAttributedString(string: Constants.PullToRefresh)
+        refreshControl.addTarget(self, action: #selector(didPullToRefresh), for: .valueChanged)
+    }
+
+    // MARK: - Pull to Refresh Action
+    @objc private func didPullToRefresh() {
+        loadData()
     }
 
     // MARK: - Data Loading
+    private func loadData() {
+        showLoadingIndicator(view)
+        connectivityManager?.checkInternetConnection { [weak self] state in
+            guard let self = self else { return }
+            self.connectionState = state
+            if state {
+                self.loadDataFromApi()
+            } else {
+                DispatchQueue.main.async {
+                    self.showNoInternetAlert()
+                    self.hideLoadingIndicator(self.view)
+                    self.loadCoreData()
+                }
+            }
+        }
+    }
+
+    // MARK: - Load Data from API
     private func loadDataFromApi() {
+        defer { self.refreshControl.endRefreshing() }
         guard let movieID = movieID else { return }
         let responseType = Movie.self
 
-        networkManager?.fetchData(from: .details(id: movieID), responseType: responseType) { [weak self] result in
-            guard let self = self, let movie = result else {
-                // Handle error here, e.g., show an alert or a placeholder view
+        networkManager?.fetchData(from: .details(id: movieID), responseType: responseType) { [weak self] result, error in
+            guard let self = self else { return }
+            if let error = error {
+                self.view.displayEmptyMessage(error)
                 return
             }
+            guard let movie = result else { return }
+
             DispatchQueue.main.async {
                 self.movie = movie
                 self.setupUI()
                 self.coreDataManager?.updateMovie(withId: movieID, updatedMovie: movie)
                 self.hideLoadingIndicator(self.view)
-
             }
         }
     }
+    // MARK: - Load Data from Core Data
     private func loadCoreData() {
-        guard let movieID = movieID ,let movie =  coreDataManager?.getMovie(forMovieWithId: movieID) else {
+        defer { self.refreshControl.endRefreshing() }
+        guard let movieID = movieID, let movie = coreDataManager?.getMovie(forMovieWithId: movieID) else {
             self.view.displayEmptyMessage(DataError.noCoreDataAvailable)
             return
         }
@@ -84,43 +127,13 @@ class MovieDetailsViewController: UIViewController {
             self.movieImage = movie.1
             setupUI()
         }
-
     }
 
-    private func loadData() {
-        showLoadingIndicator(view)
-        connectivityManager?.checkInternetConnection {[weak self] state in
-            guard let self = self else {return}
-            self.connectionState = state
-                if state {
-                    self.loadDataFromApi()
-                } else {
-                    DispatchQueue.main.async {
-                        self.showNoInternetAlert()
-                        self.hideLoadingIndicator(self.view)
-                        self.loadCoreData()
-                    }
-                }
-
-            }
-
-        }
-
-
-    // MARK: - UI Configuration
-    private func configureUIDesign() {
-        ageRatingLabel.layer.cornerRadius = 5
-        ageRatingLabel.layer.borderWidth = 2
-        ageRatingLabel.layer.borderColor = UIColor.lightGray.cgColor
-        
-        imageIndicator.center = backdropPathImage.center
-        backdropPathImage.addSubview(imageIndicator)
-    }
-
+    // MARK: - Setup UI with Movie Data
     private func setupUI() {
         guard let movie = movie else { return }
-        let (popularityCategory, popularityDetails) = calculatePopularity(movie.popularity)
 
+        let (popularityCategory, popularityDetails) = calculatePopularity(movie.popularity)
         // Populate UI elements with movie data
         titleLabel.text = movie.title
         taglineLabel.text = movie.tagline
@@ -136,7 +149,6 @@ class MovieDetailsViewController: UIViewController {
         popularityLabel.text = popularityCategory
         popularityDetailsLabel.text = popularityDetails
         overviewLabel.text = movie.overview
-
         loadBackdropImage()
     }
 
@@ -169,8 +181,8 @@ class MovieDetailsViewController: UIViewController {
 
     private func formattedVoteAverage(_ voteAverage: Double) -> String {
         return voteAverage != 0.0
-            ? "★ \(String(format: "%0.1f", voteAverage))"
-            : "No Rating Yet"
+        ? "★ \(String(format: "%0.1f", voteAverage))"
+        : "No Rating Yet"
     }
 
     private func formattedGenres(_ genres: [Genre]?) -> String {
@@ -179,27 +191,30 @@ class MovieDetailsViewController: UIViewController {
 
     private func formattedAmount(_ amountText: Int) -> String {
         return amountText > 0
-            ? String(format: "%d$", locale: Locale.current, amountText)
-            : "Not available"
+        ? String(format: "%d$", locale: Locale.current, amountText)
+        : "Not available"
     }
 
     // MARK: - Image Loading
     private func loadBackdropImage() {
         showLoadingIndicator(backdropPathImage)
-        
+
         if connectionState == true {
             guard let movieID = movieID, let backdropPath = movie?.backdropPath else {
                 hideLoadingIndicator(backdropPathImage)
                 backdropPathImage.displayEmptyMessage(DataError.dataCorruption)
                 return
             }
+
             networkManager?.loadImage(from: backdropPath) { [weak self] data in
-                guard let self = self else {return}
-                hideLoadingIndicator(backdropPathImage)
+                guard let self = self else { return }
+                self.hideLoadingIndicator(self.backdropPathImage)
+
                 guard let imageData = data else {
-                    backdropPathImage.displayEmptyMessage(APIError.responseMalformed)
+                    self.backdropPathImage.displayEmptyMessage(APIError.responseMalformed)
                     return
                 }
+
                 DispatchQueue.main.async {
                     self.backdropPathImage.image = UIImage(data: imageData)
                     self.coreDataManager?.storeMovieImage(imageData, forMovieWithId: movieID, imageType: .backdrop)

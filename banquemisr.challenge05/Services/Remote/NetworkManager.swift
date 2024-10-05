@@ -9,39 +9,33 @@ import Foundation
 
 protocol NetworkManagerProtocol: AnyObject {
     func fetchData<T: Codable>(from endpoint: MovieAPIProvider
-, responseType: T.Type, completion: @escaping (T?) -> Void)
+                               , responseType: T.Type, completion: @escaping (T?,LocalizedError?) -> Void)
     func loadImage(from imageUrl: String, completion: @escaping (Data?) -> Void)
 
 }
 class NetworkManager: NetworkManagerProtocol {
 
     func fetchData<T: Codable>(from endpoint: MovieAPIProvider
-, responseType: T.Type, completion: @escaping (T?) -> Void) {
+                               , responseType: T.Type, completion: @escaping (T?,LocalizedError?) -> Void) {
         guard let url = URL(string: endpoint.urlString) else {
-            print("error in url")
-            completion(nil)
+            completion(nil,APIError.endpointUnavailable)
             return
         }
-        print(url)
         let task = URLSession.shared.dataTask(with: url) { data, _, error in
-            if let error = error {
-                print(error.localizedDescription)
-                completion(nil)
+            if error != nil {
+                completion(nil,APIError.responseMalformed)
                 return
             }
             guard let data = data  else {
-                print("error in data")
-                completion(nil)
+                completion(nil,APIError.emptyResponse)
                 return
             }
             do {
                 let decodedData = try JSONDecoder().decode(T.self, from: data)
-                completion(decodedData)
+                completion(decodedData,nil)
 
             } catch {
-                print("error in decoded data")
-                completion(nil)
-
+                completion(nil,APIError.decodingFailure)
             }
         }
         task.resume()
@@ -65,10 +59,10 @@ class NetworkManager: NetworkManagerProtocol {
                   httpResponse.statusCode == 200,
                   let data = data else {
                 print("Invalid data or response")
-                    completion(nil)
+                completion(nil)
                 return
             }
-                completion(data)
+            completion(data)
         }
         task.resume()
     }

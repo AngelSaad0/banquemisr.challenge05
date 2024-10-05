@@ -446,6 +446,7 @@
                         <outlet property="popularityLabel" destination="NO4-dt-0Bm" id="4Gj-IT-XWq"/>
                         <outlet property="releaseDateLabel" destination="aMl-1o-3zT" id="757-gf-8fP"/>
                         <outlet property="revenueLabel" destination="id9-ej-FtR" id="7Rn-IU-QGf"/>
+                        <outlet property="scrollView" destination="zM2-xL-ta6" id="nfC-eb-bot"/>
                         <outlet property="taglineLabel" destination="VPP-bV-DIp" id="fJf-tw-bN5"/>
                         <outlet property="titleLabel" destination="CcS-Tf-j7o" id="2fh-L9-qMj"/>
                         <outlet property="totalVoteLabel" destination="IwA-1z-dSZ" id="Vzb-5h-bM8"/>
