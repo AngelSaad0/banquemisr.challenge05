@@ -15,6 +15,7 @@ enum DataError:LocalizedError {
     case dataCorruption
     case permissionDenied
     case unknownError
+    case noPosterImage
 
     var errorDescription: String? {
         switch self {
@@ -30,6 +31,9 @@ enum DataError:LocalizedError {
             return  "🔒🚫 Permission Denied.\nPlease check your app settings to allow access."
         case .unknownError :
             return "❓⚠️ An unknown error occurred.\nPlease try again or contact support if the issue persists. 📞"
+        case .noPosterImage :
+            return "😕 No Poster /n Please pull to refresh"
+
 
         }
     }

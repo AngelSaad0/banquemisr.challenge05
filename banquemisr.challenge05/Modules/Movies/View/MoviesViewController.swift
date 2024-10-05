@@ -61,6 +61,7 @@ class MoviesViewController: UIViewController {
     }
     // MARK: -  Data Loading
     private func loadData() {
+        moviesTableView.removeEmptyMessage()
         showLoadingIndicator(view)
         connectivityManager?.checkInternetConnection {[weak self] state in
             guard let self = self else {return}
@@ -89,7 +90,9 @@ class MoviesViewController: UIViewController {
         let responseType = Movies.self
         networkManager.fetchData(from: movieUrl, responseType: responseType) { [weak self] result, error in
             guard let self = self else {return}
-            self.hideLoadingIndicator(self.view)
+            DispatchQueue.main.async {
+                self.hideLoadingIndicator(self.view)
+            }
             if let error = error {
                 self.moviesTableView.displayEmptyMessage(error)
             }
@@ -155,7 +158,11 @@ extension MoviesViewController: UITableViewDataSource {
         if movieImages.isEmpty {
             cell.config(with: movieList[indexPath.row], category: moviesCategory ?? .nowPlaying)
         } else {
-            cell.config(with: movieList[indexPath.row], category: moviesCategory ?? .nowPlaying,imageData:movieImages[indexPath.row])
+            var movieImage:Data?
+            if movieImages.indices.contains(indexPath.row) {
+                movieImage = movieImages[indexPath.row]
+            }
+            cell.config(with: movieList[indexPath.row], category: moviesCategory ?? .nowPlaying,imageData:movieImage)
         }
         return cell
     }

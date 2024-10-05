@@ -26,7 +26,8 @@ class MovieDetailsViewController: UIViewController {
     @IBOutlet weak var popularityDetailsLabel: UILabel!
     @IBOutlet weak var overviewLabel: UILabel!
     @IBOutlet var scrollView: UIScrollView!
-
+    @IBOutlet var movieInfoStack: UIStackView!
+    
     // MARK: - Properties
     var movieID: Int?
     var movie: Movie?
@@ -56,6 +57,7 @@ class MovieDetailsViewController: UIViewController {
 
     // MARK: - UI Configuration
     private func configureUIDesign() {
+        movieInfoStack.isHidden = true
         ageRatingLabel.layer.cornerRadius = 5
         ageRatingLabel.layer.borderWidth = 2
         ageRatingLabel.layer.borderColor = UIColor.lightGray.cgColor
@@ -131,6 +133,8 @@ class MovieDetailsViewController: UIViewController {
 
     // MARK: - Setup UI with Movie Data
     private func setupUI() {
+        movieInfoStack.isHidden = false
+        view.removeEmptyMessage()
         guard let movie = movie else { return }
 
         let (popularityCategory, popularityDetails) = calculatePopularity(movie.popularity)
@@ -154,6 +158,9 @@ class MovieDetailsViewController: UIViewController {
 
     // MARK: - Helper Methods
     private func calculateRuntime(_ totalMinutes: Int) -> String {
+        if totalMinutes == 0 {
+            return "⏲️ Currently not available"
+        }
         let hours = totalMinutes / 60
         let minutes = totalMinutes % 60
         return "🕔\(hours)h \(minutes)m"
@@ -163,19 +170,19 @@ class MovieDetailsViewController: UIViewController {
         let roundedPopularity = Int(popularityScore)
         let popularityCategory: String
         let popularityDetails: String
-
         switch roundedPopularity {
+        case 0 :
+            return ("Not Available", "")
         case let score where score > 1000:
             popularityCategory = "High"
-            popularityDetails = "This movie is trending and is among the most popular choices among viewers."
+            popularityDetails = Constants.highPopularity
         case let score where score > 500:
             popularityCategory = "Moderate"
-            popularityDetails = "This movie has a decent following and is gaining interest."
+            popularityDetails = Constants.moderatePopularity
         default:
             popularityCategory = "Low"
-            popularityDetails = "This movie is not widely watched and may be less popular."
+            popularityDetails = Constants.lowPopularity
         }
-
         return ("\(roundedPopularity) - \(popularityCategory)", popularityDetails)
     }
 
@@ -191,25 +198,24 @@ class MovieDetailsViewController: UIViewController {
 
     private func formattedAmount(_ amountText: Int) -> String {
         return amountText > 0
-        ? String(format: "%d$", locale: Locale.current, amountText)
+        ? String(format: "%d$💰", locale: Locale.current, amountText)
         : "Not available"
     }
 
     // MARK: - Image Loading
     private func loadBackdropImage() {
         showLoadingIndicator(backdropPathImage)
+        backdropPathImage.removeEmptyMessage()
 
         if connectionState == true {
             guard let movieID = movieID, let backdropPath = movie?.backdropPath else {
-                hideLoadingIndicator(backdropPathImage)
+                hideLoadingIndicatorForImage()
                 backdropPathImage.displayEmptyMessage(DataError.dataCorruption)
                 return
             }
-
             networkManager?.loadImage(from: backdropPath) { [weak self] data in
                 guard let self = self else { return }
-                self.hideLoadingIndicator(self.backdropPathImage)
-
+                hideLoadingIndicatorForImage()
                 guard let imageData = data else {
                     self.backdropPathImage.displayEmptyMessage(APIError.responseMalformed)
                     return
@@ -227,6 +233,12 @@ class MovieDetailsViewController: UIViewController {
             } else {
                 backdropPathImage.displayEmptyMessage(DataError.noCachedDataFound)
             }
+        }
+    }
+
+    func hideLoadingIndicatorForImage () {
+        DispatchQueue.main.async {
+            self.hideLoadingIndicator(self.backdropPathImage)
         }
     }
 }
