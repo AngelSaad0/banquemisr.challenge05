@@ -17,7 +17,7 @@ extension UIViewController {
         return indicator
     }
 
-    @MainActor func showLoadingIndicator() {
+    @MainActor func showLoadingIndicator(_ view: UIView) {
         let indicator = loadingIndicator
         view.addSubview(indicator)
 
@@ -31,11 +31,13 @@ extension UIViewController {
         indicator.startAnimating()
     }
 
-    @MainActor func hideLoadingIndicator() {
-        for subview in view.subviews {
-            if let indicator = subview as? UIActivityIndicatorView {
-                indicator.stopAnimating()
-                indicator.removeFromSuperview()
+    @MainActor func hideLoadingIndicator(_ view: UIView) {
+        DispatchQueue.main.async {
+            for subview in view.subviews {
+                if let indicator = subview as? UIActivityIndicatorView {
+                    indicator.stopAnimating()
+                    indicator.removeFromSuperview()
+                }
             }
         }
     }

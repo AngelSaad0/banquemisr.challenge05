@@ -156,7 +156,7 @@
                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="2FW-GM-q8m" userLabel="Main View">
                                         <rect key="frame" x="0.0" y="0.0" width="393" height="773"/>
                                         <subviews>
-                                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="loading" translatesAutoresizingMaskIntoConstraints="NO" id="5RJ-kN-h0Q">
+                                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="5RJ-kN-h0Q">
                                                 <rect key="frame" x="0.0" y="0.0" width="393" height="230"/>
                                             </imageView>
                                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="ORV-Zh-J2F" userLabel="Stack View 1">
@@ -492,7 +492,6 @@
         </scene>
     </scenes>
     <resources>
-        <image name="loading" width="360" height="360"/>
         <namedColor name="tabBarItemColor">
             <color red="0.45100000500679016" green="0.16899999976158142" blue="0.19599999487400055" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </namedColor>

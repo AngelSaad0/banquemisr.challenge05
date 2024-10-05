@@ -57,10 +57,11 @@ class MoviesViewController: UIViewController {
                 return
             }
             DispatchQueue.main.async {
-                self?.hideLoadingIndicator()
-                self?.movieList = movies.results
-                self?.moviesTableView.reloadData()
-                if let coreDataManager = self?.coreDataManager,let moviesCategory = self?.moviesCategory {
+                guard let self = self else {return}
+                self.hideLoadingIndicator(self.view)
+                self.movieList = movies.results
+                self.moviesTableView.reloadData()
+                if let coreDataManager = self.coreDataManager,let moviesCategory = self.moviesCategory {
                    coreDataManager.storeMovies(movies: movies.results, category: moviesCategory)
                 }
             }
@@ -83,16 +84,17 @@ class MoviesViewController: UIViewController {
     }
 
     private func loadData() {
-        showLoadingIndicator()
+        showLoadingIndicator(view)
         connectivityManager?.checkInternetConnection {[weak self] state in
+            guard let self = self else {return}
             if state {
-                self?.loadDataFromApi()
+                self.loadDataFromApi()
                 
             } else {
                 DispatchQueue.main.async {
-                    self?.showNoInternetAlert()
-                    self?.hideLoadingIndicator()
-                    self?.loadCoreData()
+                    self.showNoInternetAlert()
+                    self.hideLoadingIndicator(self.view)
+                    self.loadCoreData()
                 }
             }
 

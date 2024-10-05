@@ -101,7 +101,9 @@ class MovieCoreDataManager:MovieCoreDataServiceProtocol {
 
         do {
             let moviesObject = try managedContext.fetch(fetchRequest)
-            if let movieObject = moviesObject.first{
+            print(moviesObject.count)
+            print(moviesObject)
+            if let movieObject = moviesObject.first {
                 let movie = createMovieFromEntity(movieObject)
                 return (movie,movieObject.backdropImage)
             }else {
@@ -139,12 +141,13 @@ class MovieCoreDataManager:MovieCoreDataServiceProtocol {
 
             do {
                 let moviesObjects = try managedContext.fetch(fetchRequest)
+                print(moviesObjects)
                 for movieObject in moviesObjects {
                         movieObject.budget = Int64(updatedMovie.budget ?? 0)
                         movieObject.revenue = Int64(updatedMovie.revenue ?? 0)
                         movieObject.runtime = Int64(updatedMovie.runtime ?? 0)
                         movieObject.tagline = updatedMovie.tagline
-                       movieObject.genres = updatedMovie.genres as? NSObject
+//                       movieObject.genres = updatedMovie.genres as? NSObject
                         saveContext()
                         print("Updated movie: \(updatedMovie.title)")
                     }
