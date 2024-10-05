@@ -28,18 +28,22 @@ class MovieDetailsViewController: UIViewController {
 
     // MARK: - Properties
     var movieID: Int?
-    var networkManager: NetworkManagerProtocol?
     var movie: Movie?
+    var networkManager: NetworkManagerProtocol?
+    var connectivityManager: ConnectivityManagerProtocol?
+
 
     // MARK: - Initialization
     required init?(coder: NSCoder) {
         networkManager = NetworkManager()
+        connectivityManager = ConnectivityManager()
         super.init(coder: coder)
     }
 
     // MARK: - View Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
+        loadData()
         loadDataFromApi()
         configureUIDesign()
     }
@@ -60,6 +64,23 @@ class MovieDetailsViewController: UIViewController {
             }
         }
     }
+    private func loadData() {
+        showLoadingIndicator()
+        connectivityManager?.checkInternetConnection {[weak self] state in
+                self?.hideLoadingIndicator()
+                if state {
+                    self?.loadDataFromApi()
+                } else {
+                    DispatchQueue.main.async {
+                        self?.showNoInternetAlert()
+//                        self?.loadCoreData()
+                    }
+                }
+
+            }
+
+        }
+
 
     // MARK: - UI Configuration
     private func configureUIDesign() {

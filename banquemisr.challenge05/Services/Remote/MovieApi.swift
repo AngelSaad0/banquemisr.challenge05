@@ -14,6 +14,7 @@ enum MovieApi {
     case popular
     case upcoming
     case details(id: Int)
+
     private var path: String {
         switch self {
         case .nowPlaying:
@@ -26,7 +27,21 @@ enum MovieApi {
             return "\(id)"
         }
     }
+
     var urlString: String {
-            return "\(MovieApi.baseUrl)\(self.path)?api_key=\(MovieApi.apiKey)"
+        return "\(MovieApi.baseUrl)\(self.path)?api_key=\(MovieApi.apiKey)"
+    }
+
+    var title: String {
+        switch self {
+        case .nowPlaying:
+            return "Now Playing"
+        case .popular:
+            return "Popular"
+        case .upcoming:
+            return "Upcoming"
+        default: 
+            return ""
         }
+    }
 }

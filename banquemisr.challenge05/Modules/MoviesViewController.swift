@@ -15,12 +15,16 @@ class MoviesViewController: UIViewController {
     // MARK: Properties
     var navigationTitle: String?
     var moviesCategory: MovieApi?
-    var networkManager: NetworkManagerProtocol
     var movieList: [Movie] = []
+
+    var networkManager: NetworkManagerProtocol
+    var connectivityManager: ConnectivityManagerProtocol?
+
 
     // MARK: Initalization
     required init?(coder: NSCoder) {
         networkManager = NetworkManager()
+        connectivityManager = ConnectivityManager()
         super.init(coder: coder)
     }
 
@@ -29,6 +33,8 @@ class MoviesViewController: UIViewController {
         super.viewDidLoad()
         setupUI()
         loadData()
+        loadDataFromApi()
+
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -46,7 +52,7 @@ class MoviesViewController: UIViewController {
         let responseType = Movies.self
         networkManager.fetchData(from: movieUrl, responseType: responseType) { [weak self] result in
             guard let movies = result else {
-                    self?.moviesTableView.displayEmptyMessage("error in loading data")
+                self?.moviesTableView.displayEmptyMessage("error in loading data")
                 return
             }
             DispatchQueue.main.async {
@@ -55,20 +61,40 @@ class MoviesViewController: UIViewController {
             }
         }
     }
-   
+
+    private func loadCoreData() {
+    }
+
+
     private func loadData() {
-        loadDataFromApi()
+        showLoadingIndicator()
+        connectivityManager?.checkInternetConnection {[weak self] state in
+            self?.hideLoadingIndicator()
+            if state {
+                self?.loadDataFromApi()
+            } else {
+                DispatchQueue.main.async {
+                    self?.showNoInternetAlert()
+                    self?.loadCoreData()
+                }
+            }
+
+        }
+
     }
 
 }
+// MARK: - TableView Delegate
 extension MoviesViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return 170
     }
+
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let movieDetailVC = storyboard?
-            .instantiateViewController(identifier: "MovieDetailsViewController") as? MovieDetailsViewController
+            .instantiateViewController(identifier: Constants.movieDetailsVC) as? MovieDetailsViewController
         let  movie = movieList[indexPath.row]
+
         movieDetailVC?.movieID = movie.id
         movieDetailVC?.movie = movie
         navigationController?.pushViewController(movieDetailVC!, animated: true)
@@ -76,7 +102,9 @@ extension MoviesViewController: UITableViewDelegate {
 
 }
 
+// MARK: - TableView DataSource
 extension MoviesViewController: UITableViewDataSource {
+
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return movieList.count
     }
@@ -84,10 +112,8 @@ extension MoviesViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
 
         guard let cell = tableView.dequeueReusableCell(
-            withIdentifier: "MovieTableViewCell",
-            for: indexPath
-        ) as? MovieTableViewCell else {
-            print("cant dequeue cell withIdentifier MovieTableViewCell")
+            withIdentifier: Constants.movieTVCell, for: indexPath) as? MovieTableViewCell else {
+            print("Can't cast tableView cell to expected MovieTableViewCell Class")
             return UITableViewCell()
         }
         cell.config(with: movieList[indexPath.row], category: moviesCategory ?? .nowPlaying)
