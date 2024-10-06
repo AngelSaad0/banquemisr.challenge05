@@ -73,8 +73,8 @@ final class MovieCoreDataManagerTests: XCTestCase {
         (movie, _) = coreDataManager.getMovie(forMovieWithId: 475557)
         XCTAssertEqual(movie?.revenue, 500_000)
         XCTAssertEqual(movie?.budget, 1_000_000)
-//        XCTAssertEqual(movie?.genres?.first?.id, 1)
-//        XCTAssertEqual(movie?.genres?.first?.name, "Horror")
+        XCTAssertEqual(movie?.genres?.first?.id, 1)
+        XCTAssertEqual(movie?.genres?.first?.name, "Horror")
         XCTAssertEqual(movie?.runtime, 93)
         XCTAssertEqual(movie?.tagline, "Updated Tagline")
     }

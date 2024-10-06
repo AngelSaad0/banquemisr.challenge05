@@ -147,7 +147,7 @@ class MovieCoreDataManager:MovieCoreDataServiceProtocol {
                         movieObject.revenue = Int64(updatedMovie.revenue ?? 0)
                         movieObject.runtime = Int64(updatedMovie.runtime ?? 0)
                         movieObject.tagline = updatedMovie.tagline
-//                       movieObject.genres = updatedMovie.genres as? NSObject
+                        movieObject.genres = encodeGenresToData(updatedMovie.genres)
                         saveContext()
                         print("Updated movie: \(updatedMovie.title)")
                     }
@@ -171,10 +171,33 @@ class MovieCoreDataManager:MovieCoreDataServiceProtocol {
             title: movie.title ?? "" ,
             voteAverage: movie.voteAverage,
             voteCount: Int(movie.voteCount),
-            genres: movie.genres as? [Genre]  ?? [],
+            genres: decodeDataToGenres(movie.genres),
             runtime: Int(movie.runtime),
             tagline: movie.tagline
         )
     }
 
+    private func encodeGenresToData(_ genres: [Genre]?) -> Data? {
+        let encoder = JSONEncoder()
+        do {
+            guard let genres = genres else { return nil }
+            let genresData = try encoder.encode(genres)
+            return genresData
+        } catch {
+            print("Failed to encode genres: \(error)")
+            return nil
+        }
+    }
+    
+    private func decodeDataToGenres(_ data: Data?) -> [Genre]? {
+        let decoder = JSONDecoder()
+        do {
+            guard let data = data else { return nil }
+            let genres = try decoder.decode([Genre].self, from: data)
+            return genres
+        } catch {
+            print("Failed to decode genres: \(error)")
+            return nil
+        }
+    }
 }
