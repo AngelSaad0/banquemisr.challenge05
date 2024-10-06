@@ -1,5 +1,5 @@
 //
-//  NetworkManagerTests.swift
+//  MovieRepositoryTests.swift
 //  banquemisr.challenge05Tests
 //
 //  Created by Engy on 06/10/2024.
@@ -8,21 +8,21 @@
 import XCTest
 @testable import banquemisr_challenge05
 
-final class NetworkManagerTests: XCTestCase {
+final class MovieRepositoryTests: XCTestCase {
 
-    var networkManager: NetworkManagerProtocol!
+    var movieRepository: MovieRepositoryProtocol!
     
     override func setUpWithError() throws {
-        networkManager = NetworkManager()
+        movieRepository = MovieRepository()
     }
 
     override func tearDownWithError() throws {
-        networkManager = nil
+        movieRepository = nil
     }
 
     func testFetchingUpcomingMoviesFromAPI() throws {
         let expectation = expectation(description: "Testing successful fetching upcoming movies from API")
-        networkManager.fetchData(from: MovieAPIProvider.upcoming, responseType: Movies.self) { result, error in
+        movieRepository.fetchData(from: MovieAPIProvider.upcoming, responseType: Movies.self) { result, error in
             if error != nil {
                 XCTFail()
             }
@@ -38,7 +38,7 @@ final class NetworkManagerTests: XCTestCase {
     
     func testFetchingMovieDetailsFromAPI() throws {
         let expectation = expectation(description: "Testing successful fetching movie details from API")
-        networkManager.fetchData(from: MovieAPIProvider.details(id: 475557), responseType: Movie.self) { result, error in
+        movieRepository.fetchData(from: MovieAPIProvider.details(id: 475557), responseType: Movie.self) { result, error in
             if error != nil {
                 XCTFail()
             }
@@ -55,7 +55,7 @@ final class NetworkManagerTests: XCTestCase {
     
     func testNetworkDecodingFailure() throws {
         let expectation = expectation(description: "Testing failure decoding movies from API because of wrong response type")
-        networkManager.fetchData(from: MovieAPIProvider.upcoming, responseType: Movie.self) { result, error in
+        movieRepository.fetchData(from: MovieAPIProvider.upcoming, responseType: Movie.self) { result, error in
             if result != nil {
                 XCTFail()
             }
@@ -71,7 +71,7 @@ final class NetworkManagerTests: XCTestCase {
 
     func testLoadImageFromAPI() throws {
         let expectation = expectation(description: "Testing successful loading image from API")
-        networkManager.loadImage(from: "/gZWl93sf8AxavYpVT1Un6EF3oCj.jpg") { data in
+        movieRepository.loadImage(from: "/gZWl93sf8AxavYpVT1Un6EF3oCj.jpg") { data in
             XCTAssertNotNil(data)
             expectation.fulfill()
         }
@@ -80,7 +80,7 @@ final class NetworkManagerTests: XCTestCase {
     
     func testFailureLoadImageFromAPI() throws {
         let expectation = expectation(description: "Testing failure loading image from API because of invalid image path")
-        networkManager.loadImage(from: "invalidPath") { data in
+        movieRepository.loadImage(from: "invalidPath") { data in
             XCTAssertNil(data)
             expectation.fulfill()
         }

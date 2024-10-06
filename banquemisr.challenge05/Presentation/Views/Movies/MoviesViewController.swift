@@ -63,7 +63,7 @@ class MoviesViewController: UIViewController {
             }
         }
         viewModel.showNoInternetAlert = {
-            DispatchQueue.main.async { [weak self] in
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
                 self?.showNoInternetAlert()
             }
         }

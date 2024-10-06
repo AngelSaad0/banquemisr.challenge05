@@ -93,7 +93,7 @@
                                                         <constraint firstItem="3Od-Jf-009" firstAttribute="leading" secondItem="4Ql-gf-U0g" secondAttribute="leading" id="ZlE-yU-gnr"/>
                                                     </constraints>
                                                 </view>
-                                                <view alpha="0.05000000074505806" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="mx1-JS-yJ9">
+                                                <view alpha="0.040000000745058099" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="mx1-JS-yJ9">
                                                     <rect key="frame" x="16" y="16" width="361" height="159"/>
                                                     <color key="backgroundColor" name="tabBarItemColor"/>
                                                 </view>

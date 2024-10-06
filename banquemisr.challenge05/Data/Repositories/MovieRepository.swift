@@ -1,5 +1,5 @@
 //
-//  NetworkManager.swift
+//  MovieRepository.swift
 //  banquemisr.challenge05
 //
 //  Created by Engy on 10/3/24.
@@ -7,13 +7,13 @@
 
 import Foundation
 
-protocol NetworkManagerProtocol: AnyObject {
+protocol MovieRepositoryProtocol: AnyObject {
     func fetchData<T: Codable>(from endpoint: MovieAPIProvider
                                , responseType: T.Type, completion: @escaping (T?,LocalizedError?) -> Void)
     func loadImage(from imageUrl: String, completion: @escaping (Data?) -> Void)
 
 }
-class NetworkManager: NetworkManagerProtocol {
+class MovieRepository: MovieRepositoryProtocol {
 
     func fetchData<T: Codable>(from endpoint: MovieAPIProvider
                                , responseType: T.Type, completion: @escaping (T?,LocalizedError?) -> Void) {

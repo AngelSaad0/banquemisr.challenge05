@@ -6,6 +6,7 @@
 //
 
 import Foundation
+
 struct Constants {
     static let moviesVC = "MoviesViewController"
     static let movieDetailsVC = "MovieDetailsViewController"
@@ -22,9 +23,5 @@ struct Constants {
     static let highPopularity = "This movie is trending and is among the most popular choices among viewers."
     static let moderatePopularity = "This movie has a decent following and is gaining interest."
     static let lowPopularity = "This movie is not widely watched and may be less popular."
-
-
-
-
 }
 

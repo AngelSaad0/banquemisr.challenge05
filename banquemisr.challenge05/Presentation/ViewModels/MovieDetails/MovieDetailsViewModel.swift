@@ -13,9 +13,10 @@ class MovieDetailsViewModel {
     var movie: Movie?
     var movieImage: Data?
     var connectionState: Bool?
-    var networkManager: NetworkManagerProtocol?
     var connectivityManager: ConnectivityManagerProtocol?
     var coreDataManager: MovieCoreDataServiceProtocol?
+    var fetchMovieDetailsUseCase: FetchMoviesUseCaseProtocol?
+    var loadBackdropImageUseCase: LoadMovieImageUseCaseProtocol?
     
     // MARK: - Closures
     var setLoadingIndicator: (Bool) -> Void = {_ in}
@@ -31,7 +32,8 @@ class MovieDetailsViewModel {
     
     // MARK: - Initializer
     init() {
-        networkManager = NetworkManager()
+        fetchMovieDetailsUseCase = FetchMoviesUseCase()
+        loadBackdropImageUseCase = LoadMovieImageUseCase()
         connectivityManager = ConnectivityManager()
         coreDataManager = MovieCoreDataManager.shared
     }
@@ -59,21 +61,23 @@ class MovieDetailsViewModel {
         guard let movieID = movieID else { return }
         let responseType = Movie.self
 
-        networkManager?.fetchData(from: .details(id: movieID), responseType: responseType) { [weak self] result, error in
+        fetchMovieDetailsUseCase?.execute(from: .details(id: movieID), responseType: responseType) { [weak self] result in
             guard let self = self else { return }
-            if let error = error {
+            switch result {
+            case .success(let movie):
+                self.movie = movie
+                self.setupUI()
+                DispatchQueue.main.async {
+                    self.coreDataManager?.updateMovie(withId: movieID, updatedMovie: movie)
+                }
+                self.setLoadingIndicator(false)
+            case .failure(let error):
                 self.displayEmptyMessage(error)
-                return
+                self.setLoadingIndicator(false)
             }
-            guard let movie = result else { return }
-            self.movie = movie
-            self.setupUI()
-            DispatchQueue.main.async {
-                self.coreDataManager?.updateMovie(withId: movieID, updatedMovie: movie)
-            }
-            self.setLoadingIndicator(false)
         }
     }
+    
     // MARK: - Load Data from Core Data
     private func loadCoreData() {
         defer { endRefreshControl() }
@@ -101,17 +105,17 @@ class MovieDetailsViewModel {
                 displayImageEmptyMessage(DataError.dataCorruption)
                 return
             }
-            networkManager?.loadImage(from: backdropPath) { [weak self] data in
+            loadBackdropImageUseCase?.execute(imageUrl: backdropPath) { [weak self] result in
                 guard let self = self else { return }
                 self.setImageLoadingIndicator(false)
-                guard let imageData = data else {
-                    self.displayImageEmptyMessage(APIError.responseMalformed)
-                    return
-                }
-
-                DispatchQueue.main.async {
-                    self.setBackdropImage(imageData)
-                    self.coreDataManager?.storeMovieImage(imageData, forMovieWithId: movieID, imageType: .backdrop)
+                switch result {
+                case .success(let imageData):
+                    DispatchQueue.main.async {
+                        self.setBackdropImage(imageData)
+                        self.coreDataManager?.storeMovieImage(imageData, forMovieWithId: movieID, imageType: .backdrop)
+                    }
+                case .failure(let error):
+                    self.displayImageEmptyMessage(error)
                 }
             }
         } else {

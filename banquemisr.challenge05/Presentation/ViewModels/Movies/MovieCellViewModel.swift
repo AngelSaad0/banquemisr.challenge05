@@ -10,6 +10,7 @@ import Foundation
 class MovieCellViewModel {
     // MARK: - Properties
     var coreDataManager: MovieCoreDataServiceProtocol?
+    var loadMovieImageUseCase: LoadMovieImageUseCaseProtocol?
 
     // MARK: - Closures
     var setLoadingImage: () -> Void = {}
@@ -18,6 +19,7 @@ class MovieCellViewModel {
     
     // MARK: - Initializer
     init() {
+        loadMovieImageUseCase = LoadMovieImageUseCase()
         coreDataManager = MovieCoreDataManager.shared
     }
     
@@ -28,25 +30,20 @@ class MovieCellViewModel {
     }
 
     func loadImage(for cell: Movie) {
-        print(cell)
         let baseImgUrl = "https://image.tmdb.org/t/p/w342"
-
-        guard let posterPath = URL(string: baseImgUrl + cell.posterPath) else {
-            print("Error in image cell URL")
-            setNoPosterImage()
-            return
-        }
-
+        let posterPath = baseImgUrl + cell.posterPath
         setLoadingImage()
 
-        DispatchQueue.global(qos: .background).async { [weak self] in
-            if let imageData = try? Data(contentsOf: posterPath) {
-                self?.setLoadedImage(imageData)
+        loadMovieImageUseCase?.execute(imageUrl: posterPath) { [weak self] result in
+            guard let self = self else { return }
+            switch result {
+            case .success(let imageData):
+                self.setLoadedImage(imageData)
                 DispatchQueue.main.async {
-                    self?.coreDataManager?.storeMovieImage(imageData, forMovieWithId: cell.id, imageType: .poster)
+                    self.coreDataManager?.storeMovieImage(imageData, forMovieWithId: cell.id, imageType: .poster)
                 }
-            } else {
-                self?.setNoPosterImage()
+            case .failure:
+                self.setNoPosterImage()
             }
         }
     }
