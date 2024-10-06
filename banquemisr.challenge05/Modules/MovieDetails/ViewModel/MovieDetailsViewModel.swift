@@ -68,7 +68,9 @@ class MovieDetailsViewModel {
             guard let movie = result else { return }
             self.movie = movie
             self.setupUI()
-            self.coreDataManager?.updateMovie(withId: movieID, updatedMovie: movie)
+            DispatchQueue.main.async {
+                self.coreDataManager?.updateMovie(withId: movieID, updatedMovie: movie)
+            }
             self.setLoadingIndicator(false)
         }
     }
@@ -107,8 +109,10 @@ class MovieDetailsViewModel {
                     return
                 }
 
-                setBackdropImage(imageData)
-                coreDataManager?.storeMovieImage(imageData, forMovieWithId: movieID, imageType: .backdrop)
+                DispatchQueue.main.async {
+                    self.setBackdropImage(imageData)
+                    self.coreDataManager?.storeMovieImage(imageData, forMovieWithId: movieID, imageType: .backdrop)
+                }
             }
         } else {
             setImageLoadingIndicator(false)

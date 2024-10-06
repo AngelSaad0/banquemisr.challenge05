@@ -28,8 +28,8 @@ class MainTabBarController: UITabBarController {
 
         moviesVC.tabBarItem.title = title
         moviesVC.tabBarItem.image = UIImage(systemName: image)
-        moviesVC.moviesCategory = category
-        moviesVC.navigationTitle = "\(title) 🎬"
+        moviesVC.viewModel.moviesCategory = category
+        moviesVC.viewModel.navigationTitle = "\(title) 🎬"
         return moviesVC
     }
 
