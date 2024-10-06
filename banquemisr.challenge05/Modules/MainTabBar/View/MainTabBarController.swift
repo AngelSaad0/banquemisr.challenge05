@@ -8,13 +8,12 @@ import UIKit
 
 class MainTabBarController: UITabBarController {
 
-
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
         setupTabBarAppearance()
     }
-
+    // MARK: -  setup UI for Main TabBar
     private func setupUI() {
         let nowPlayingVC = createViewController(for: Constants.moviesVC, image: Constants.nowPlayingImage, category: .nowPlaying)
         let popularVC = createViewController(for: Constants.moviesVC, image: Constants.popularImage, category: .popular)
@@ -22,8 +21,8 @@ class MainTabBarController: UITabBarController {
         viewControllers = [nowPlayingVC, popularVC, upcomingVC]
     }
 
-    private func createViewController(for viewControllerID: String, image: String, category: MovieAPIProvider
-) -> UIViewController {
+    // MARK: -  create ViewController
+    private func createViewController(for viewControllerID: String, image: String, category: MovieAPIProvider) -> UIViewController {
         let title = category.title
         let moviesVC = storyboard?.instantiateViewController(withIdentifier: viewControllerID) as! MoviesViewController
 
@@ -34,6 +33,7 @@ class MainTabBarController: UITabBarController {
         return moviesVC
     }
 
+    // MARK: -  setup TabBar Appearance
     private func setupTabBarAppearance() {
         let customFont = UIFont(name: Constants.wickedMouseFont, size: 20) ?? UIFont.systemFont(ofSize: 20)
         let customAttributes: [NSAttributedString.Key: Any] = [ .font: customFont, .foregroundColor: UIColor.tabBarItem]

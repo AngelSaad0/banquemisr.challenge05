@@ -137,8 +137,8 @@ extension MoviesViewController: UITableViewDelegate {
         let movieDetailVC = storyboard?
             .instantiateViewController(identifier: Constants.movieDetailsVC) as? MovieDetailsViewController
         let  movie = movieList[indexPath.row]
-        movieDetailVC?.movieID = movie.id
-        movieDetailVC?.movie = movie
+        movieDetailVC?.viewModel.movieID = movie.id
+        movieDetailVC?.viewModel.movie = movie
         navigationController?.pushViewController(movieDetailVC!, animated: true)
     }
 }

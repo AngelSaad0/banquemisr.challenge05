@@ -29,21 +29,12 @@ class MovieDetailsViewController: UIViewController {
     @IBOutlet var movieInfoStack: UIStackView!
     
     // MARK: - Properties
-    var movieID: Int?
-    var movie: Movie?
-    var movieImage: Data?
-    var connectionState: Bool?
-
-    var networkManager: NetworkManagerProtocol?
-    var connectivityManager: ConnectivityManagerProtocol?
-    var coreDataManager: MovieCoreDataServiceProtocol?
     private let refreshControl = UIRefreshControl()
+    let viewModel: MovieDetailsViewModel!
 
     // MARK: - Initialization
     required init?(coder: NSCoder) {
-        networkManager = NetworkManager()
-        connectivityManager = ConnectivityManager()
-        coreDataManager = MovieCoreDataManager.shared
+        viewModel = MovieDetailsViewModel()
         super.init(coder: coder)
     }
 
@@ -52,7 +43,8 @@ class MovieDetailsViewController: UIViewController {
         super.viewDidLoad()
         configureUIDesign()
         setupRefreshControl()
-        loadData()
+        setupViewModel()
+        viewModel.loadData()
     }
 
     // MARK: - UI Configuration
@@ -72,168 +64,78 @@ class MovieDetailsViewController: UIViewController {
 
     // MARK: - Pull to Refresh Action
     @objc private func didPullToRefresh() {
-        loadData()
+        viewModel.loadData()
     }
 
-    // MARK: - Data Loading
-    private func loadData() {
-        showLoadingIndicator(view)
-        connectivityManager?.checkInternetConnection { [weak self] state in
-            guard let self = self else { return }
-            self.connectionState = state
-            if state {
-                self.loadDataFromApi()
-            } else {
-                DispatchQueue.main.async {
-                    self.showNoInternetAlert()
-                    self.hideLoadingIndicator(self.view)
-                    self.loadCoreData()
-                }
+    // MARK: - Setup View Model
+    func setupViewModel() {
+        viewModel.setLoadingIndicator = { state in
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                state ? self.showLoadingIndicator(self.view) : self.hideLoadingIndicator(self.view)
             }
         }
-    }
-
-    // MARK: - Load Data from API
-    private func loadDataFromApi() {
-        defer { self.refreshControl.endRefreshing() }
-        guard let movieID = movieID else { return }
-        let responseType = Movie.self
-
-        networkManager?.fetchData(from: .details(id: movieID), responseType: responseType) { [weak self] result, error in
-            guard let self = self else { return }
-            if let error = error {
-                self.view.displayEmptyMessage(error)
-                return
+        viewModel.showNoInternetAlert = {
+            DispatchQueue.main.async { [weak self] in
+                self?.showNoInternetAlert()
             }
-            guard let movie = result else { return }
-
+        }
+        viewModel.endRefreshControl = {
+            self.refreshControl.endRefreshing()
+        }
+        viewModel.displayEmptyMessage = { message in
+            self.view.displayEmptyMessage(message)
+        }
+        viewModel.removeEmptyMessage = {
+            self.view.removeEmptyMessage()
+        }
+        viewModel.setupUI = {
+            DispatchQueue.main.async { [weak self] in
+                self?.setupUI()
+            }
+        }
+        viewModel.setImageLoadingIndicator = { state in
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                state ? self.showLoadingIndicator(self.backdropPathImage) : self.hideLoadingIndicator(self.backdropPathImage)
+            }
+        }
+        viewModel.displayImageEmptyMessage = { message in
+            self.backdropPathImage.displayEmptyMessage(message)
+        }
+        viewModel.removeImageEmptyMessage = {
+            self.backdropPathImage.removeEmptyMessage()
+        }
+        viewModel.setBackdropImage = { [weak self] imageData in
             DispatchQueue.main.async {
-                self.movie = movie
-                self.setupUI()
-                self.coreDataManager?.updateMovie(withId: movieID, updatedMovie: movie)
-                self.hideLoadingIndicator(self.view)
+                self?.backdropPathImage.image = UIImage(data: imageData)
             }
         }
     }
-    // MARK: - Load Data from Core Data
-    private func loadCoreData() {
-        defer { self.refreshControl.endRefreshing() }
-        guard let movieID = movieID, let movie = coreDataManager?.getMovie(forMovieWithId: movieID) else {
-            self.view.displayEmptyMessage(DataError.noCoreDataAvailable)
-            return
-        }
-        if movie.0 == nil {
-            self.view.displayEmptyMessage(DataError.noCachedDataFound)
-        } else {
-            self.movie = movie.0
-            self.movieImage = movie.1
-            setupUI()
-        }
-    }
-
+    
     // MARK: - Setup UI with Movie Data
     private func setupUI() {
         movieInfoStack.isHidden = false
         view.removeEmptyMessage()
-        guard let movie = movie else { return }
+        guard let movie = viewModel.movie else { return }
 
-        let (popularityCategory, popularityDetails) = calculatePopularity(movie.popularity)
+        let (popularityCategory, popularityDetails) = viewModel.calculatePopularity(movie.popularity)
         // Populate UI elements with movie data
         titleLabel.text = movie.title
         taglineLabel.text = movie.tagline
-        genresLabel.text = formattedGenres(movie.genres)
+        genresLabel.text = viewModel.formattedGenres(movie.genres)
         ageRatingLabel.text = movie.adult ? "+18" : "PG"
-        voteAverageLabel.text = formattedVoteAverage(movie.voteAverage)
+        voteAverageLabel.text = viewModel.formattedVoteAverage(movie.voteAverage)
         originalLanguageLabel.text = movie.originalLanguage.capitalized
         releaseDateLabel.text = "🗓️ \(movie.releaseDate)"
-        durationLabel.text = calculateRuntime(movie.runtime ?? 0)
-        budgetLabel.text = formattedAmount(movie.budget ?? 0)
-        revenueLabel.text = formattedAmount(movie.revenue ?? 0)
+        durationLabel.text = viewModel.calculateRuntime(movie.runtime ?? 0)
+        budgetLabel.text = viewModel.formattedAmount(movie.budget ?? 0)
+        revenueLabel.text = viewModel.formattedAmount(movie.revenue ?? 0)
         totalVoteLabel.text = "\(movie.voteCount)"
         popularityLabel.text = popularityCategory
         popularityDetailsLabel.text = popularityDetails
         overviewLabel.text = movie.overview
-        loadBackdropImage()
-    }
-
-    // MARK: - Helper Methods
-    private func calculateRuntime(_ totalMinutes: Int) -> String {
-        if totalMinutes == 0 {
-            return "⏲️ Currently not available"
-        }
-        let hours = totalMinutes / 60
-        let minutes = totalMinutes % 60
-        return "🕔\(hours)h \(minutes)m"
-    }
-
-    private func calculatePopularity(_ popularityScore: Double) -> (String, String) {
-        let roundedPopularity = Int(popularityScore)
-        let popularityCategory: String
-        let popularityDetails: String
-        switch roundedPopularity {
-        case 0 :
-            return ("Not Available", "")
-        case let score where score > 1000:
-            popularityCategory = "High"
-            popularityDetails = Constants.highPopularity
-        case let score where score > 500:
-            popularityCategory = "Moderate"
-            popularityDetails = Constants.moderatePopularity
-        default:
-            popularityCategory = "Low"
-            popularityDetails = Constants.lowPopularity
-        }
-        return ("\(roundedPopularity) - \(popularityCategory)", popularityDetails)
-    }
-
-    private func formattedVoteAverage(_ voteAverage: Double) -> String {
-        return voteAverage != 0.0
-        ? "★ \(String(format: "%0.1f", voteAverage))"
-        : "No Rating Yet"
-    }
-
-    private func formattedGenres(_ genres: [Genre]?) -> String {
-        return genres?.map { $0.name }.joined(separator: " | ") ?? "No Genres Available"
-    }
-
-    private func formattedAmount(_ amountText: Int) -> String {
-        return amountText > 0
-        ? String(format: "%d$💰", locale: Locale.current, amountText)
-        : "Not available"
-    }
-
-    // MARK: - Image Loading
-    private func loadBackdropImage() {
-        showLoadingIndicator(backdropPathImage)
-        backdropPathImage.removeEmptyMessage()
-
-        if connectionState == true {
-            guard let movieID = movieID, let backdropPath = movie?.backdropPath else {
-                hideLoadingIndicatorForImage()
-                backdropPathImage.displayEmptyMessage(DataError.dataCorruption)
-                return
-            }
-            networkManager?.loadImage(from: backdropPath) { [weak self] data in
-                guard let self = self else { return }
-                hideLoadingIndicatorForImage()
-                guard let imageData = data else {
-                    self.backdropPathImage.displayEmptyMessage(APIError.responseMalformed)
-                    return
-                }
-
-                DispatchQueue.main.async {
-                    self.backdropPathImage.image = UIImage(data: imageData)
-                    self.coreDataManager?.storeMovieImage(imageData, forMovieWithId: movieID, imageType: .backdrop)
-                }
-            }
-        } else {
-            hideLoadingIndicator(backdropPathImage)
-            if let movieImage = movieImage {
-                backdropPathImage.image = UIImage(data: movieImage)
-            } else {
-                backdropPathImage.displayEmptyMessage(DataError.noCachedDataFound)
-            }
-        }
+        viewModel.loadBackdropImage()
     }
 
     func hideLoadingIndicatorForImage () {

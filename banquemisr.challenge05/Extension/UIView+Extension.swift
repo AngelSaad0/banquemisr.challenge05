@@ -7,7 +7,7 @@
 
 import UIKit
 extension UIView {
-    @MainActor func displayEmptyMessage<T: LocalizedError> (_ error: T) {
+    @MainActor func displayEmptyMessage(_ error: any LocalizedError) {
         DispatchQueue.main.async {
             let messageLabel = UILabel()
             messageLabel.text = error.errorDescription
@@ -28,7 +28,7 @@ extension UIView {
 
     @MainActor func removeEmptyMessage() {
         for subview in self.subviews {
-            if let label = subview as? UILabel, label.textColor == .black {
+            if let label = subview as? UILabel {
                 label.removeFromSuperview()
             }
         }
