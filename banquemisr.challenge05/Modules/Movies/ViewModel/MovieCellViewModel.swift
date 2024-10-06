@@ -8,11 +8,18 @@
 import Foundation
 
 class MovieCellViewModel {
+    // MARK: - Properties
+    var coreDataManager: MovieCoreDataServiceProtocol?
+
     // MARK: - Closures
     var setLoadingImage: () -> Void = {}
     var setNoPosterImage: () -> Void = {}
     var setLoadedImage: (Data) -> Void = {_ in}
     
+    // MARK: - Initializer
+    init() {
+        coreDataManager = MovieCoreDataManager.shared
+    }
     
     func formattedVoteAverage(_ voteAverage: Double) -> String {
         return voteAverage != 0.0
@@ -21,6 +28,7 @@ class MovieCellViewModel {
     }
 
     func loadImage(for cell: Movie) {
+        print(cell)
         let baseImgUrl = "https://image.tmdb.org/t/p/w342"
 
         guard let posterPath = URL(string: baseImgUrl + cell.posterPath) else {
@@ -35,7 +43,7 @@ class MovieCellViewModel {
             if let imageData = try? Data(contentsOf: posterPath) {
                 self?.setLoadedImage(imageData)
                 DispatchQueue.main.async {
-                    MovieCoreDataManager.shared.storeMovieImage(imageData, forMovieWithId: cell.id, imageType: .poster)
+                    self?.coreDataManager?.storeMovieImage(imageData, forMovieWithId: cell.id, imageType: .poster)
                 }
             } else {
                 self?.setNoPosterImage()

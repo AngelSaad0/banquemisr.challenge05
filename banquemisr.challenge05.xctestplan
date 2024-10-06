@@ -1,0 +1,36 @@
+{
+  "configurations" : [
+    {
+      "id" : "857EE0E4-74DA-4ED5-BDCC-0726EEA60BF3",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:banquemisr.challenge05.xcodeproj",
+      "identifier" : "A93279D32CAF0AC00053A9C2",
+      "name" : "banquemisr.challenge05"
+    }
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : false,
+      "target" : {
+        "containerPath" : "container:banquemisr.challenge05.xcodeproj",
+        "identifier" : "A93279EC2CAF0AC20053A9C2",
+        "name" : "banquemisr.challenge05Tests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:banquemisr.challenge05.xcodeproj",
+        "identifier" : "A93279F62CAF0AC20053A9C2",
+        "name" : "banquemisr.challenge05UITests"
+      }
+    }
+  ],
+  "version" : 1
+}
